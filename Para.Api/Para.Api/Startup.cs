@@ -15,7 +15,9 @@ using Para.Base;
 using Para.Base.Token;
 using Para.Bussiness;
 using Para.Bussiness.Cqrs;
+using Para.Bussiness.Job;
 using Para.Bussiness.Notification;
+using Para.Bussiness.RabbitMQ;
 using Para.Bussiness.Token;
 using Para.Bussiness.Validation;
 using Para.Data.Context;
@@ -72,6 +74,10 @@ public class Startup
 
         services.AddScoped<ITokenService, TokenService>();
         services.AddSingleton<INotificationService, NotificationService>();
+
+        //RABBITMQ SETTINGS
+        services.AddSingleton<EmailProcedure>();
+        services.AddSingleton<RabbitMQPublisher>();
 
         services.AddAuthentication(x =>
         {
@@ -138,7 +144,6 @@ public class Startup
             .UseSqlServerStorage(Configuration.GetConnectionString("HangfireConnection")));
         services.AddHangfireServer();
 
-
         services.AddScoped<ISessionContext>(provider =>
         {
             var context = provider.GetService<IHttpContextAccessor>();
@@ -161,18 +166,17 @@ public class Startup
 
         app.UseMiddleware<HeartbeatMiddleware>();
         app.UseMiddleware<ErrorHandlerMiddleware>();
-        Action<RequestProfilerModel> requestResponseHandler = requestProfilerModel =>
-        {
-            Log.Information("-------------Request-Begin------------");
-            // Log.Information(requestProfilerModel.Request);
-            Log.Information(Environment.NewLine);
-            // Log.Information(requestProfilerModel.Response);
-            Log.Information("-------------Request-End------------");
-        };
-        app.UseMiddleware<RequestLoggingMiddleware>(requestResponseHandler);
+        // Action<RequestProfilerModel> requestResponseHandler = requestProfilerModel =>
+        // {
+        //     Log.Information("-------------Request-Begin------------");
+        //     // Log.Information(requestProfilerModel.Request);
+        //     Log.Information(Environment.NewLine);
+        //     // Log.Information(requestProfilerModel.Response);
+        //     Log.Information("-------------Request-End------------");
+        // };
+        // app.UseMiddleware<RequestLoggingMiddleware>(requestResponseHandler);
 
         app.UseHangfireDashboard();
-
         app.UseHttpsRedirection();
         app.UseAuthentication();
         app.UseRouting();
