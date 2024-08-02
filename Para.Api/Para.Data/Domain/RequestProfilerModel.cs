@@ -8,10 +8,10 @@ namespace Para.Data.Domain
 {
     public class RequestProfilerModel
     {
-        DateTimeOffset RequestTime { get; set; }
-        DateTimeOffset ResponseTime { get; set; }
-        HttpContext? Context { get; set; }
-        string? Request { get; set; }
-        string? Response { get; set; }
+        public DateTimeOffset RequestTime { get; set; }
+        public DateTimeOffset ResponseTime { get; set; }
+        public HttpContext Context { get; set; }
+        public string Request { get; set; }
+        public string Response { get; set; }
     }
 }

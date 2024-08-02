@@ -14,7 +14,7 @@ namespace Para.Api.Controllers
     public class CustomersController : ControllerBase
     {
         private readonly IMediator mediator;
-        
+
         public CustomersController(IMediator mediator)
         {
             this.mediator = mediator;
@@ -29,7 +29,7 @@ namespace Para.Api.Controllers
             var result = await mediator.Send(operation);
             return result;
         }
-        
+
         [HttpGet("ByParameters")]
         [Authorize(Roles = "admin")]
         public async Task<ApiResponse<List<CustomerResponse>>> GetByParameters(
@@ -38,7 +38,7 @@ namespace Para.Api.Controllers
             [FromQuery] string LastName = null,
             [FromQuery] string IdentityNumber = null)
         {
-            var operation = new GetCustomerByParametersQuery(CustomerNumber,FirstName,LastName,IdentityNumber);
+            var operation = new GetCustomerByParametersQuery(CustomerNumber, FirstName, LastName, IdentityNumber);
             var result = await mediator.Send(operation);
             return result;
         }
@@ -51,10 +51,10 @@ namespace Para.Api.Controllers
             var result = await mediator.Send(operation);
             return result;
         }
-        
+
         [HttpGet("{customerId}")]
         [Authorize(Roles = "admin")]
-        public async Task<ApiResponse<CustomerResponse>> Get([FromRoute]long customerId)
+        public async Task<ApiResponse<CustomerResponse>> Get([FromRoute] long customerId)
         {
             var operation = new GetCustomerByIdQuery(customerId);
             var result = await mediator.Send(operation);
@@ -62,7 +62,7 @@ namespace Para.Api.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "admin")]
+        // [Authorize(Roles = "admin")]
         public async Task<ApiResponse<CustomerResponse>> Post([FromBody] CustomerRequest value)
         {
             var operation = new CreateCustomerCommand(value);
@@ -74,7 +74,7 @@ namespace Para.Api.Controllers
         [Authorize(Roles = "admin")]
         public async Task<ApiResponse> Put(long customerId, [FromBody] CustomerRequest value)
         {
-            var operation = new UpdateCustomerCommand(customerId,value);
+            var operation = new UpdateCustomerCommand(customerId, value);
             var result = await mediator.Send(operation);
             return result;
         }

@@ -13,7 +13,7 @@ namespace Para.Api.Controllers
     public class AccountsController : ControllerBase
     {
         private readonly IMediator mediator;
-        
+
         public AccountsController(IMediator mediator)
         {
             this.mediator = mediator;
@@ -31,13 +31,13 @@ namespace Para.Api.Controllers
 
         [HttpGet("{AccountId}")]
         [Authorize(Roles = "admin")]
-        public async Task<ApiResponse<AccountResponse>> Get([FromRoute]long AccountId)
+        public async Task<ApiResponse<AccountResponse>> Get([FromRoute] long AccountId)
         {
             var operation = new GetAccountByIdQuery(AccountId);
             var result = await mediator.Send(operation);
             return result;
         }
-        
+
         [HttpGet("ByCustomer")]
         [Authorize(Roles = "customer")]
         public async Task<ApiResponse<List<AccountResponse>>> GetByCustomerId()
@@ -48,7 +48,7 @@ namespace Para.Api.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "admin")]
+        // [Authorize(Roles = "admin")]
         public async Task<ApiResponse<AccountResponse>> Post([FromBody] AccountRequest value)
         {
             var operation = new CreateAccountCommand(value);
@@ -60,7 +60,7 @@ namespace Para.Api.Controllers
         [Authorize(Roles = "admin")]
         public async Task<ApiResponse> Put(long AccountId, [FromBody] AccountRequest value)
         {
-            var operation = new UpdateAccountCommand(AccountId,value);
+            var operation = new UpdateAccountCommand(AccountId, value);
             var result = await mediator.Send(operation);
             return result;
         }

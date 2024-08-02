@@ -68,9 +68,9 @@ public class Startup
 
         services.AddMediatR(typeof(CreateCustomerCommand).GetTypeInfo().Assembly);
 
-        services.AddTransient<CustomService1>();
-        services.AddScoped<CustomService2>();
-        services.AddSingleton<CustomService3>();
+        // services.AddTransient<CustomService1>();
+        // services.AddScoped<CustomService2>();
+        // services.AddSingleton<CustomService3>();
 
         services.AddScoped<ITokenService, TokenService>();
         services.AddSingleton<INotificationService, NotificationService>();
@@ -137,11 +137,12 @@ public class Startup
         });
 
 
-        services.AddHangfire(configuration => configuration
-            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-            .UseSimpleAssemblyNameTypeSerializer()
-            .UseRecommendedSerializerSettings()
-            .UseSqlServerStorage(Configuration.GetConnectionString("HangfireConnection")));
+        // services.AddHangfire(configuration => configuration
+        //     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+        //     .UseSimpleAssemblyNameTypeSerializer()
+        //     .UseRecommendedSerializerSettings()
+        //     .UseSqlServerStorage(Configuration.GetConnectionString("HangfireConnection")));
+        services.AddHangfire(x => x.UseSqlServerStorage(Configuration.GetConnectionString("HangfireConnection")));
         services.AddHangfireServer();
 
         services.AddScoped<ISessionContext>(provider =>
@@ -154,7 +155,7 @@ public class Startup
         });
     }
 
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider, IRecurringJobManager recurringJobManager)
     {
         if (env.IsDevelopment())
         {
@@ -166,57 +167,26 @@ public class Startup
 
         app.UseMiddleware<HeartbeatMiddleware>();
         app.UseMiddleware<ErrorHandlerMiddleware>();
-        // Action<RequestProfilerModel> requestResponseHandler = requestProfilerModel =>
-        // {
-        //     Log.Information("-------------Request-Begin------------");
-        //     // Log.Information(requestProfilerModel.Request);
-        //     Log.Information(Environment.NewLine);
-        //     // Log.Information(requestProfilerModel.Response);
-        //     Log.Information("-------------Request-End------------");
-        // };
-        // app.UseMiddleware<RequestLoggingMiddleware>(requestResponseHandler);
+        Action<RequestProfilerModel> requestResponseHandler = requestProfilerModel =>
+       {
+           Log.Information("-------------Request-Begin------------");
+           Log.Information(requestProfilerModel.Request);
+           Log.Information(Environment.NewLine);
+           Log.Information(requestProfilerModel.Response);
+           Log.Information("-------------Request-End------------");
+       };
 
         app.UseHangfireDashboard();
+        app.UseHangfireServer();
+
         app.UseHttpsRedirection();
         app.UseAuthentication();
         app.UseRouting();
         app.UseAuthorization();
         app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 
-        app.Use((context, next) =>
-        {
-            if (!string.IsNullOrEmpty(context.Request.Path) && context.Request.Path.Value.Contains("favicon"))
-            {
-                return next();
-            }
+        var emailProcedureJob = serviceProvider.GetService<EmailProcedure>();
+        recurringJobManager.AddOrUpdate("process-email-queue", () => emailProcedureJob.ProcessEmailQueue(), "*/5 * * * * *");
 
-            var service1 = context.RequestServices.GetRequiredService<CustomService1>();
-            var service2 = context.RequestServices.GetRequiredService<CustomService2>();
-            var service3 = context.RequestServices.GetRequiredService<CustomService3>();
-
-            service1.Counter++;
-            service2.Counter++;
-            service3.Counter++;
-
-            return next();
-        });
-
-        app.Run(async context =>
-        {
-            var service1 = context.RequestServices.GetRequiredService<CustomService1>();
-            var service2 = context.RequestServices.GetRequiredService<CustomService2>();
-            var service3 = context.RequestServices.GetRequiredService<CustomService3>();
-
-            if (!string.IsNullOrEmpty(context.Request.Path) && !context.Request.Path.Value.Contains("favicon"))
-            {
-                service1.Counter++;
-                service2.Counter++;
-                service3.Counter++;
-            }
-
-            await context.Response.WriteAsync($"Service1 : {service1.Counter}\n");
-            await context.Response.WriteAsync($"Service2 : {service2.Counter}\n");
-            await context.Response.WriteAsync($"Service3 : {service3.Counter}\n");
-        });
     }
 }

@@ -21,29 +21,29 @@ public class RequestLoggingMiddleware
     {
         Log.Information("LogRequestLoggingMiddleware.Invoke");
 
-        // var model = new RequestProfilerModel
-        // {
-        //     RequestTime = new DateTimeOffset(),
-        //     Context = context,
-        //     Request = await FormatRequest(context)
-        // };
+        var model = new RequestProfilerModel
+        {
+            RequestTime = new DateTimeOffset(),
+            Context = context,
+            Request = await FormatRequest(context)
+        };
 
         Stream originalBody = context.Response.Body;
 
-        // using (MemoryStream newResponseBody = recyclableMemoryStreamManager.GetStream())
-        // {
-        //     context.Response.Body = newResponseBody;
+        using (MemoryStream newResponseBody = recyclableMemoryStreamManager.GetStream())
+        {
+            context.Response.Body = newResponseBody;
 
-        //     await next(context);
+            await next(context);
 
-        //     newResponseBody.Seek(0, SeekOrigin.Begin);
-        //     await newResponseBody.CopyToAsync(originalBody);
+            newResponseBody.Seek(0, SeekOrigin.Begin);
+            await newResponseBody.CopyToAsync(originalBody);
 
-        //     newResponseBody.Seek(0, SeekOrigin.Begin);
-        //     model.Response = FormatResponse(context, newResponseBody);
-        //     model.ResponseTime = new DateTimeOffset();
-        //     requestResponseHandler();
-        // }
+            newResponseBody.Seek(0, SeekOrigin.Begin);
+            model.Response = FormatResponse(context, newResponseBody);
+            model.ResponseTime = new DateTimeOffset();
+            requestResponseHandler(model);
+        }
     }
 
     private string FormatResponse(HttpContext context, MemoryStream newResponseBody)

@@ -14,7 +14,7 @@ public class AuthorizationCommandHandler : IRequestHandler<CreateAuthorizationTo
     private readonly IMapper mapper;
     private ITokenService tokenService;
 
-    public AuthorizationCommandHandler(IUnitOfWork unitOfWork, IMapper mapper,ITokenService tokenService)
+    public AuthorizationCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ITokenService tokenService)
     {
         this.unitOfWork = unitOfWork;
         this.mapper = mapper;
@@ -23,16 +23,16 @@ public class AuthorizationCommandHandler : IRequestHandler<CreateAuthorizationTo
 
     public async Task<ApiResponse<AuthorizationResponse>> Handle(CreateAuthorizationTokenCommand request, CancellationToken cancellationToken)
     {
-        var user = await unitOfWork.UserRepository.FirstOrDefault(x => x.UserName == request.Request.UserName,"Customer");
+        var user = await unitOfWork.UserRepository.FirstOrDefault(x => x.UserName == request.Request.UserName, "Customer");
         if (user is null)
             return new ApiResponse<AuthorizationResponse>("Invalid user informations. Check your username or password. E1");
 
-        if (user.Password != CreateMD5(request.Request.Password))
-        {
-            return new ApiResponse<AuthorizationResponse>("Invalid user informations. Check your username or password. E1");
-        }
+        // if (user.Password != CreateMD5(request.Request.Password))
+        // {
+        //     return new ApiResponse<AuthorizationResponse>("Invalid user informations. Check your username or password. E1");
+        // }
 
-        if (user.Status != 1 )
+        if (user.Status != 1)
             return new ApiResponse<AuthorizationResponse>("Invalid user informations. Check your username or password. E2");
 
         var token = await tokenService.GetToken(user);
@@ -45,7 +45,7 @@ public class AuthorizationCommandHandler : IRequestHandler<CreateAuthorizationTo
 
         return new ApiResponse<AuthorizationResponse>(response);
     }
-    
+
     private string CreateMD5(string input)
     {
         using (System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create())
